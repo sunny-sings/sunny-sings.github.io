@@ -40,7 +40,7 @@ function renderSongs() {
     const L = (s.artist || s.title).trim()[0]?.toUpperCase() || ''
     const head = !q && L !== last ? `<div class="letter">${esc(last = L)}</div>` : ''
     return `${head}<div class="song"><span class="nm">${esc(s.title)}<small>${esc(s.artist)}</small></span><button data-order="${esc(s.id)}">Заказать</button></div>`
-  }).join('') : '<p class="hint">Такой песни пока нет — напиши её в чат эфира, Катя посмотрит 😉</p>'
+  }).join('') : '<p class="hint">Такой песни пока нет — напиши её в чат эфира — посмотрю 😉</p>'
 }
 
 function openOrder(song) {
