@@ -1,0 +1,112 @@
+// Страница-визитка: ссылки (site.json), репертуар (songs.json), песни за лайки (live.json — его публикует Мак во время эфира)
+const $ = s => document.querySelector(s)
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+const safeUrl = u => /^https:\/\//i.test(String(u || '')) ? esc(u) : '#'
+const fmt = n => n >= 1000 ? (Math.round(n / 100) / 10).toString().replace('.', ',').replace(/,0$/, '') + 'K' : String(n)
+let SITE = {}, SONGS = []
+
+async function getJson(url) {
+  const r = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Math.floor(Date.now() / 30000), { cache: 'no-store' })
+  if (!r.ok) throw new Error(r.status)
+  return r.json()
+}
+
+function toast(t) {
+  const el = $('#toast'); el.textContent = t; el.hidden = false
+  clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true }, 2200)
+}
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text) } catch {
+    const ta = document.createElement('textarea'); ta.value = text; document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove()
+  }
+  toast('Скопировано ✓')
+}
+
+function renderLinks() {
+  const out = [`<button class="btn main" data-go="songs"><span class="ic">🎶</span><span class="tx">Заказать песню<small>Репертуар — выбери, что спеть</small></span></button>`]
+  for (const l of SITE.links || []) {
+    if (!l.url) continue
+    out.push(`<a class="btn" href="${safeUrl(l.url)}" target="_blank" rel="noopener"><span class="ic">${esc(l.icon || '🔗')}</span><span class="tx">${esc(l.title)}${l.sub ? `<small>${esc(l.sub)}</small>` : ''}</span></a>`)
+  }
+  $('#links').innerHTML = out.join('')
+  $('#foot-tt').href = SITE.tiktok
+}
+
+function renderSongs() {
+  const q = $('#q').value.trim().toLowerCase()
+  const list = SONGS.filter(s => !q || (s.artist + ' ' + s.title).toLowerCase().includes(q))
+  let last = ''
+  $('#list').innerHTML = list.length ? list.map(s => {
+    const L = (s.artist || s.title).trim()[0]?.toUpperCase() || ''
+    const head = !q && L !== last ? `<div class="letter">${esc(last = L)}</div>` : ''
+    return `${head}<div class="song"><span class="nm">${esc(s.title)}<small>${esc(s.artist)}</small></span><button data-order="${esc(s.id)}">Заказать</button></div>`
+  }).join('') : '<p class="hint">Такой песни пока нет — напиши её в чат эфира, Катя посмотрит 😉</p>'
+}
+
+function openOrder(song) {
+  const name = `${song.artist ? song.artist + ' — ' : ''}${song.title}`
+  const chat = `!песня ${song.title}`
+  const daMsg = `🎵 ${name}`
+  const ways = []
+  if (SITE.da) ways.push(`<div class="way"><h4>💛 Донатом — песня следующей</h4>
+    <p>От ${esc(SITE.daNextRub)} ₽ — спою сразу после текущей. Твоё сообщение прозвучит в эфире голосом. Вставь в сообщение к донату:</p>
+    <div class="cmd"><span>${esc(daMsg)}</span><button class="go alt" data-copy="${esc(daMsg)}">Копировать</button></div>
+    <a class="go" href="${safeUrl(SITE.da)}" target="_blank" rel="noopener" data-copyfirst="${esc(daMsg)}">Открыть донат</a></div>`)
+  ways.push(`<div class="way"><h4>🎁 Подарком в эфире — песня следующей</h4>
+    <p>Зайди в эфир, напиши в чат команду и отправь подарки от ${esc(SITE.coinsNext)} монет — песня встанет следующей. Меньше — поднимется в очереди.</p>
+    <div class="cmd"><span>${esc(chat)}</span><button class="go alt" data-copy="${esc(chat)}">Копировать</button></div>
+    <a class="go" href="${safeUrl(SITE.live)}" target="_blank" rel="noopener" data-copyfirst="${esc(chat)}">Открыть эфир</a></div>`)
+  ways.push(`<div class="way"><h4>💬 Бесплатно</h4>
+    <p>Просто напиши эту же команду в чат эфира — песня встанет в общую очередь.</p></div>`)
+  $('#s-title').textContent = name
+  $('#s-body').innerHTML = ways.join('')
+  $('#sheet').hidden = false
+}
+
+function renderLive(L) {
+  const on = !!(L && L.live && Date.now() - (L.at || 0) < 10 * 60000)
+  $('#live').hidden = !on
+  if (on && L.likes != null) $('#live-t').textContent = `Сейчас в эфире · ${fmt(L.likes)} ❤`
+  const lad = on && Array.isArray(L.ladder) ? L.ladder : []
+  $('#ladder-box').hidden = !lad.length
+  $('#ladder').innerHTML = lad.map(x => `<li class="${x.paid ? 'paid' : ''} ${x.cur ? 'cur' : ''}">
+    <span class="at">${x.cur ? '▶ сейчас' : x.paid ? '💛 заказ' : fmt(+x.at || 0) + ' ❤'}</span>
+    <span class="nm">${esc(x.title)}<small>${esc(x.artist || '')}${x.by ? ' · заказ ' + esc(x.by) : ''}</small></span></li>`).join('')
+}
+
+// эфир публикует Мак (scripts/site-publish.mjs live) в ntfy.sh: берём последнее сообщение темы
+async function pollLive() {
+  if (!SITE.ntfyTopic) return renderLive(null)
+  try {
+    const r = await fetch(`https://ntfy.sh/${encodeURIComponent(SITE.ntfyTopic)}/json?poll=1&since=latest`, { cache: 'no-store' })
+    const lines = (await r.text()).trim().split('\n').filter(Boolean)
+    const m = lines.length ? JSON.parse(lines[lines.length - 1]) : null
+    renderLive(m && m.message ? JSON.parse(m.message) : null)
+  } catch { renderLive(null) }
+}
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-go],[data-order],[data-copy],[data-copyfirst],[data-close],#sheet')
+  if (!t) return
+  if (t.dataset.go) { document.getElementById(t.dataset.go).scrollIntoView({ behavior: 'smooth' }); setTimeout(() => $('#q').focus({ preventScroll: true }), 500) }
+  else if (t.dataset.order) { const s = SONGS.find(x => String(x.id) === t.dataset.order); if (s) openOrder(s) }
+  else if (t.dataset.copy) copy(t.dataset.copy)
+  else if (t.dataset.copyfirst) copy(t.dataset.copyfirst)   // ссылка всё равно откроется — текст уже в буфере
+  else if ('close' in t.dataset || e.target === t) $('#sheet').hidden = true
+})
+$('#q').addEventListener('input', renderSongs)
+
+;(async () => {
+  try { SITE = await getJson('site.json') } catch { SITE = {} }
+  SITE.tiktok ||= 'https://www.tiktok.com/@sun_singer'
+  SITE.live ||= SITE.tiktok + '/live'
+  SITE.coinsNext ||= 100
+  renderLinks()
+  try {
+    SONGS = await getJson('songs.json')
+    SONGS.sort((a, b) => (a.artist || a.title).localeCompare(b.artist || b.title, 'ru'))
+    $('#count').textContent = SONGS.length + ' песен'
+  } catch { SONGS = [] }
+  renderSongs()
+  pollLive(); setInterval(pollLive, 30000)
+})()

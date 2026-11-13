@@ -1,0 +1,34 @@
+{
+  "tiktok": "https://www.tiktok.com/@sun_singer",
+  "live": "https://www.tiktok.com/@sun_singer/live",
+  "coinsNext": 100,
+  "daNextRub": 300,
+  "da": "",
+  "links": [
+    {
+      "icon": "💛",
+      "title": "Донат с голосовым сообщением",
+      "sub": "DonationAlerts — сообщение прозвучит в эфире",
+      "url": ""
+    },
+    {
+      "icon": "🎯",
+      "title": "Сбор на …",
+      "sub": "ЮMoney",
+      "url": ""
+    },
+    {
+      "icon": "🌍",
+      "title": "Support from abroad",
+      "sub": "",
+      "url": ""
+    },
+    {
+      "icon": "📺",
+      "title": "TikTok @sun_singer",
+      "sub": "Подписывайся — эфиры почти каждый день",
+      "url": "https://www.tiktok.com/@sun_singer"
+    }
+  ],
+  "ntfyTopic": "sun-singer-live-a39ba815"
+}
