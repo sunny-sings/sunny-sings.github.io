@@ -76,3 +76,17 @@ h2 small { color: var(--mute); font-weight: 400; font-size: 14px; }
 .tabs button.on { background: var(--red); }
 .cnt { flex: none; color: var(--mute); font-size: 13px; text-align: right; }
 .sung li { opacity: .7; }
+
+.steps { margin: 0 0 6px; padding-left: 22px; color: var(--mute); font-size: 15px; }
+.steps li { margin-bottom: 6px; }
+.steps a { color: var(--cyan); }
+.repair { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 4px 16px 16px; margin-top: 26px; }
+.repair p { color: var(--mute); font-size: 15px; margin: 0 0 10px; }
+.repair .links { margin: 14px 0 0; }
+.repair .btn { background: var(--card2); }
+.repair .btn.main { background: linear-gradient(135deg, var(--red), #c2185b); }
+.goal { margin: 14px 0 4px; }
+.goal p { margin: 6px 0 0; color: var(--text); }
+.goal b { color: var(--gold); }
+.bar { height: 12px; border-radius: 999px; background: var(--card2); overflow: hidden; }
+.bar i { display: block; height: 100%; min-width: 4px; background: linear-gradient(90deg, var(--gold), var(--red)); border-radius: 999px; }

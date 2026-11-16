@@ -1,4 +1,4 @@
-// Страница-визитка: ссылки (site.json), репертуар (songs.json), песни за лайки (live.json — его публикует Мак во время эфира)
+// Страница-визитка: ссылки (site.json), репертуар (songs.json), сбор на ремонт (repair.json — сумму обновляет da-listen на Маке), «в эфире» (ntfy)
 const $ = s => document.querySelector(s)
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 const safeUrl = u => /^https:\/\//i.test(String(u || '')) ? esc(u) : '#'
@@ -93,11 +93,18 @@ function renderLive(L) {
   const on = !!(L && L.live && Date.now() - (L.at || 0) < 10 * 60000)
   $('#live').hidden = !on
   if (on && L.likes != null) $('#live-t').textContent = `Сейчас в эфире · ${fmt(L.likes)} ❤`
-  const lad = on && Array.isArray(L.ladder) ? L.ladder : []
-  $('#ladder-box').hidden = !lad.length
-  $('#ladder').innerHTML = lad.map(x => `<li class="${x.paid ? 'paid' : ''} ${x.cur ? 'cur' : ''}">
-    <span class="at">${x.cur ? '▶ сейчас' : x.paid ? '💛 заказ' : fmt(+x.at || 0) + ' ❤'}</span>
-    <span class="nm">${esc(x.title)}<small>${esc(x.artist || '')}${x.by ? ' · заказ ' + esc(x.by) : ''}</small></span></li>`).join('')
+}
+
+// сбор на ремонт: repair.json {goal, raised} — da-listen прибавляет каждый донат и публикует
+function renderRepair(R) {
+  $('#r-da').href = safeUrl(SITE.da)
+  $('#r-tt').href = safeUrl(SITE.tiktok)
+  if (!R || !(R.goal > 0)) return
+  const rub = n => Math.round(n).toLocaleString('ru-RU') + ' ₽'
+  $('#g-bar').style.width = Math.min(100, (R.raised || 0) / R.goal * 100) + '%'
+  $('#g-raised').textContent = rub(R.raised || 0)
+  $('#g-goal').textContent = rub(R.goal)
+  $('#goal').hidden = false
 }
 
 // эфир публикует Мак (scripts/site-publish.mjs live) в ntfy.sh: берём последнее сообщение темы
@@ -129,6 +136,7 @@ $('#q').addEventListener('input', renderSongs)
   SITE.live ||= SITE.tiktok + '/live'
   SITE.coinsNext ||= 100
   renderLinks()
+  renderRepair(await getJson('repair.json').catch(() => null))
   try {
     SONGS = await getJson('songs.json')
     SONGS.sort((a, b) => (a.artist || a.title).localeCompare(b.artist || b.title, 'ru'))

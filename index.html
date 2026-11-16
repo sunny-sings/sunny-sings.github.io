@@ -15,16 +15,33 @@
   <header class="head">
     <div class="ava">🎤</div>
     <h1>🌊 Sunny <span>· @sun_singer</span></h1>
-    <p class="sub">Живой эфир каждый вечер — из дома на колёсах в Португалии. Заказывай песни, поём вместе! 💛</p>
+    <p class="sub">Пою вживую в TikTok почти каждый вечер — из дома на колёсах в Португалии. А ещё сама ремонтирую этот дом и показываю, как идёт ремонт 🔧</p>
     <div class="live" id="live" hidden><i></i> <span id="live-t">Сейчас в эфире</span></div>
   </header>
 
   <nav class="links" id="links"></nav>
 
-  <section id="ladder-box" hidden>
-    <h2>🎯 Песни за лайки</h2>
-    <p class="hint">Набираем лайки — пою следующую песню. Заказ за донат или подарок встаёт сразу следующим.</p>
-    <ol class="ladder" id="ladder"></ol>
+  <section id="how">
+    <h2>🎤 Как заказать песню</h2>
+    <ol class="steps">
+      <li>Найди песню в <a href="#songs">репертуаре</a> ниже и нажми «Заказать» — это бесплатно.</li>
+      <li>Во время эфира она встанет в <a href="queue.html">очередь</a>, вне эфира — спою на следующем.</li>
+      <li>Хочешь без очереди — донат от 300 ₽ или подарок в эфире от 100 монет: песня будет следующей.</li>
+    </ol>
+  </section>
+
+  <section id="repair" class="repair">
+    <h2>🚐 Сбор на ремонт автодома</h2>
+    <p>Автодом — мой дом и моя сцена: отсюда я пою все эфиры. Сейчас ему нужен ремонт, и я делаю его сама.</p>
+    <p>Показываю всё как есть — в эфирах и в коротких видео: что сломалось, как чиню, что получилось. Подпишись, чтобы видеть, чем закончится 🔧</p>
+    <div class="goal" id="goal" hidden>
+      <div class="bar"><i id="g-bar"></i></div>
+      <p><b id="g-raised"></b> из <span id="g-goal"></span></p>
+    </div>
+    <div class="links">
+      <a class="btn main" id="r-da" target="_blank" rel="noopener"><span class="ic">💛</span><span class="tx">Помочь с ремонтом<small>Любой донат идёт в сбор · твой ник и сообщение прозвучат в эфире</small></span></a>
+      <a class="btn" id="r-tt" target="_blank" rel="noopener"><span class="ic">➕</span><span class="tx">Подписаться в TikTok<small>Песни и ремонт автодома — смотри, как всё получится</small></span></a>
+    </div>
   </section>
 
   <section id="songs">

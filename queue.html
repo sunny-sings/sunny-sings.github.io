@@ -14,7 +14,7 @@
   <div class="live" id="live" hidden><i></i> <span id="live-t">Сейчас в эфире</span></div>
   <p class="hint" id="off">Сейчас не в эфире. Очередь появится, когда начнётся эфир — эфиры почти каждый вечер. <a href="./#songs">Заказать песню на следующий эфир →</a></p>
   <section id="q-box" hidden>
-    <p class="hint">Заказ за донат или подарок встаёт сразу следующим, остальные песни — по лайкам и по порядку.</p>
+    <p class="hint">Заказ за донат или подарок встаёт сразу следующим, остальные — по порядку.</p>
     <ol class="ladder" id="q"></ol>
   </section>
   <section id="s-box" hidden>
@@ -34,8 +34,9 @@ function render(L) {
   if (on) $('#live-t').textContent = `Сейчас в эфире · ${fmt(L.likes || 0)} ❤`
   const q = on && Array.isArray(L.ladder) ? L.ladder : [], s = on && Array.isArray(L.sung) ? L.sung : []
   $('#q-box').hidden = !q.length; $('#s-box').hidden = !s.length
+  let n = 0
   $('#q').innerHTML = q.map(x => `<li class="${x.paid ? 'paid' : ''} ${x.cur ? 'cur' : ''}">
-    <span class="at">${x.cur ? '▶ сейчас' : x.paid ? '💛 следующей' : fmt(+x.at || 0) + ' ❤'}</span>
+    <span class="at">${x.cur ? '▶ сейчас' : x.paid ? '💛 следующей' : ++n + '.'}</span>
     <span class="nm">${esc(x.title)}<small>${esc(x.artist || '')}${x.by ? ' · заказ ' + esc(x.by) : ''}</small></span></li>`).join('')
   $('#s').innerHTML = s.map(x => `<li><span class="nm">${esc(x.title)}<small>${esc(x.artist || '')}</small></span></li>`).join('')
 }
