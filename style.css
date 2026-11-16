@@ -90,3 +90,4 @@ h2 small { color: var(--mute); font-weight: 400; font-size: 14px; }
 .goal b { color: var(--gold); }
 .bar { height: 12px; border-radius: 999px; background: var(--card2); overflow: hidden; }
 .bar i { display: block; height: 100%; min-width: 4px; background: linear-gradient(90deg, var(--gold), var(--red)); border-radius: 999px; }
+.repair h2 { margin-top: 14px; }
