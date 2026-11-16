@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>📋 Очередь · Sunny @sun_singer</title>
+<meta name="theme-color" content="#0e0b16">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="wrap">
+  <a class="back" href="./">← Sunny · @sun_singer</a>
+  <h1>📋 Очередь</h1>
+  <div class="live" id="live" hidden><i></i> <span id="live-t">Сейчас в эфире</span></div>
+  <p class="hint" id="off">Сейчас не в эфире. Очередь появится, когда начнётся эфир — эфиры почти каждый вечер. <a href="./#songs">Заказать песню на следующий эфир →</a></p>
+  <section id="q-box" hidden>
+    <p class="hint">Заказ за донат или подарок встаёт сразу следующим, остальные песни — по лайкам и по порядку.</p>
+    <ol class="ladder" id="q"></ol>
+  </section>
+  <section id="s-box" hidden>
+    <h2>✅ Уже спела</h2>
+    <ol class="ladder sung" id="s"></ol>
+  </section>
+  <p class="foot"><a class="go" href="./#songs">🎶 Заказать песню</a></p>
+</main>
+<script>
+const $ = s => document.querySelector(s)
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+const fmt = n => n >= 1000 ? (Math.round(n / 100) / 10).toString().replace('.', ',').replace(/,0$/, '') + 'K' : String(n)
+let TOPIC = ''
+function render(L) {
+  const on = !!(L && L.live && Date.now() - (L.at || 0) < 10 * 60000)
+  $('#live').hidden = !on; $('#off').hidden = on
+  if (on) $('#live-t').textContent = `Сейчас в эфире · ${fmt(L.likes || 0)} ❤`
+  const q = on && Array.isArray(L.ladder) ? L.ladder : [], s = on && Array.isArray(L.sung) ? L.sung : []
+  $('#q-box').hidden = !q.length; $('#s-box').hidden = !s.length
+  $('#q').innerHTML = q.map(x => `<li class="${x.paid ? 'paid' : ''} ${x.cur ? 'cur' : ''}">
+    <span class="at">${x.cur ? '▶ сейчас' : x.paid ? '💛 следующей' : fmt(+x.at || 0) + ' ❤'}</span>
+    <span class="nm">${esc(x.title)}<small>${esc(x.artist || '')}${x.by ? ' · заказ ' + esc(x.by) : ''}</small></span></li>`).join('')
+  $('#s').innerHTML = s.map(x => `<li><span class="nm">${esc(x.title)}<small>${esc(x.artist || '')}</small></span></li>`).join('')
+}
+async function poll() {
+  try {
+    const r = await fetch(`https://ntfy.sh/${encodeURIComponent(TOPIC)}/json?poll=1&since=latest`, { cache: 'no-store' })
+    const lines = (await r.text()).trim().split('\n').filter(Boolean)
+    const m = lines.length ? JSON.parse(lines[lines.length - 1]) : null
+    render(m && m.message ? JSON.parse(m.message) : null)
+  } catch { render(null) }
+}
+fetch('site.json?t=' + Date.now()).then(r => r.json()).then(c => { TOPIC = c.ntfyTopic; poll(); setInterval(poll, 15000) })
+</script>
+</body>
+</html>

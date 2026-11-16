@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>🔥 Топ песен · Sunny @sun_singer</title>
+<meta name="theme-color" content="#0e0b16">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="wrap">
+  <a class="back" href="./">← Sunny · @sun_singer</a>
+  <h1>🔥 Топ песен</h1>
+  <p class="hint">Что чаще всего пою в эфирах и что вы заказываете. Обновляется раз в сутки.</p>
+  <div class="tabs"><button data-p="week" class="on">За неделю</button><button data-p="month">За месяц</button></div>
+  <ol class="ladder" id="t"><li><span class="nm">Загружаю…</span></li></ol>
+  <p class="foot"><a class="go" href="./#songs">🎶 Заказать песню</a></p>
+</main>
+<script>
+const $ = s => document.querySelector(s)
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+const word = (n, a, b, c) => { const m = n % 10, h = n % 100; return m === 1 && h !== 11 ? a : m >= 2 && m <= 4 && (h < 12 || h > 14) ? b : c }
+let R = {}, P = 'week'
+function render() {
+  const list = R[P] || []
+  $('#t').innerHTML = list.length ? list.map((x, i) => `<li><span class="at">${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</span>
+    <span class="nm">${esc(x.title)}<small>${esc(x.artist || '')}</small></span>
+    <span class="cnt">${x.plays ? `спела ${x.plays} ${word(x.plays, 'раз', 'раза', 'раз')}` : ''}${x.plays && x.reqs ? '<br>' : ''}${x.reqs ? `заказали ${x.reqs}` : ''}</span></li>`).join('')
+    : '<li><span class="nm">Пока пусто</span></li>'
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.p === P))
+}
+document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { P = b.dataset.p; render() } })
+fetch('rating.json?t=' + Math.floor(Date.now() / 600000)).then(r => r.json()).then(j => { R = j; render() }).catch(() => { $('#t').innerHTML = '<li><span class="nm">Не загрузилось</span></li>' })
+</script>
+</body>
+</html>

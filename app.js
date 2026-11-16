@@ -23,7 +23,9 @@ async function copy(text) {
 }
 
 function renderLinks() {
-  const out = [`<button class="btn main" data-go="songs"><span class="ic">🎶</span><span class="tx">Заказать песню<small>Репертуар — выбери, что спеть</small></span></button>`]
+  const out = [`<button class="btn main" data-go="songs"><span class="ic">🎶</span><span class="tx">Заказать песню<small>Репертуар — выбери, что спеть</small></span></button>`,
+    `<a class="btn" href="queue.html"><span class="ic">📋</span><span class="tx">Очередь<small>Что поётся сейчас, кто что заказал</small></span></a>`,
+    `<a class="btn" href="top.html"><span class="ic">🔥</span><span class="tx">Топ песен<small>Что чаще всего поют и заказывают</small></span></a>`]
   for (const l of SITE.links || []) {
     if (!l.url) continue
     out.push(`<a class="btn" href="${safeUrl(l.url)}" target="_blank" rel="noopener"><span class="ic">${esc(l.icon || '🔗')}</span><span class="tx">${esc(l.title)}${l.sub ? `<small>${esc(l.sub)}</small>` : ''}</span></a>`)
@@ -48,6 +50,11 @@ function openOrder(song) {
   const chat = `!песня ${song.title}`
   const daMsg = `🎵 ${name}`
   const ways = []
+  if (SITE.ordersTopic) ways.push(`<div class="way"><h4>🎶 Заказать отсюда — бесплатно</h4>
+    <p>Во время эфира песня встанет в общую очередь, вне эфира — в заявки на следующий эфир. Один заказ раз в 10 минут.</p>
+    <input class="nick" id="nick" maxlength="30" placeholder="Твой ник в TikTok" value="${esc(localStorage.nick || '')}">
+    <button class="go" data-send="${esc(song.id)}">Заказать</button>
+    <p class="hint" id="sent" hidden></p></div>`)
   if (SITE.da) ways.push(`<div class="way"><h4>💛 Донатом — песня следующей</h4>
     <p>От ${esc(SITE.daNextRub)} ₽ — спою сразу после текущей. Твоё сообщение прозвучит в эфире голосом. Вставь в сообщение к донату:</p>
     <div class="cmd"><span>${esc(daMsg)}</span><button class="go alt" data-copy="${esc(daMsg)}">Копировать</button></div>
@@ -56,11 +63,30 @@ function openOrder(song) {
     <p>Зайди в эфир, напиши в чат команду и отправь подарки от ${esc(SITE.coinsNext)} монет — песня встанет следующей. Меньше — поднимется в очереди.</p>
     <div class="cmd"><span>${esc(chat)}</span><button class="go alt" data-copy="${esc(chat)}">Копировать</button></div>
     <a class="go" href="${safeUrl(SITE.live)}" target="_blank" rel="noopener" data-copyfirst="${esc(chat)}">Открыть эфир</a></div>`)
-  ways.push(`<div class="way"><h4>💬 Бесплатно</h4>
-    <p>Просто напиши эту же команду в чат эфира — песня встанет в общую очередь.</p></div>`)
+  ways.push(`<div class="way"><h4>💬 Из чата</h4>
+    <p>Можно и прямо в эфире: напиши эту же команду в чат — песня встанет в общую очередь.</p></div>`)
   $('#s-title').textContent = name
   $('#s-body').innerHTML = ways.join('')
   $('#sheet').hidden = false
+}
+
+// заказ уходит в ntfy-тему; Мак забирает его за ~5 с и ставит в очередь (scripts/site-publish.mjs в karaoke)
+async function sendOrder(btn) {
+  const nick = $('#nick').value.trim().replace(/^@/, '')
+  if (!nick) { $('#nick').focus(); return toast('Напиши свой ник') }
+  localStorage.nick = nick
+  btn.disabled = true; btn.textContent = 'Отправляю…'
+  const out = $('#sent')
+  try {
+    const r = await fetch('https://ntfy.sh/' + encodeURIComponent(SITE.ordersTopic), { method: 'POST', body: JSON.stringify({ songId: btn.dataset.send, by: nick }) })
+    if (!r.ok) throw new Error(r.status)
+    btn.textContent = 'Отправлено ✓'
+    out.hidden = false
+    out.innerHTML = 'Заказ принят! Через несколько секунд он появится в <a href="queue.html">очереди</a> (если идёт эфир).'
+  } catch {
+    btn.disabled = false; btn.textContent = 'Заказать'
+    out.hidden = false; out.textContent = 'Не отправилось — проверь интернет и попробуй ещё раз.'
+  }
 }
 
 function renderLive(L) {
@@ -86,8 +112,9 @@ async function pollLive() {
 }
 
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-go],[data-order],[data-copy],[data-copyfirst],[data-close],#sheet')
+  const t = e.target.closest('[data-go],[data-order],[data-copy],[data-copyfirst],[data-send],[data-close],#sheet')
   if (!t) return
+  if (t.dataset.send) return sendOrder(t)
   if (t.dataset.go) { document.getElementById(t.dataset.go).scrollIntoView({ behavior: 'smooth' }); setTimeout(() => $('#q').focus({ preventScroll: true }), 500) }
   else if (t.dataset.order) { const s = SONGS.find(x => String(x.id) === t.dataset.order); if (s) openOrder(s) }
   else if (t.dataset.copy) copy(t.dataset.copy)
