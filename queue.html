@@ -35,9 +35,16 @@ function render(L) {
   const q = on && Array.isArray(L.ladder) ? L.ladder : [], s = on && Array.isArray(L.sung) ? L.sung : []
   $('#q-box').hidden = !q.length; $('#s-box').hidden = !s.length
   let n = 0
-  $('#q').innerHTML = q.map(x => `<li class="${x.paid ? 'paid' : ''} ${x.cur ? 'cur' : ''}">
-    <span class="at">${x.cur ? '▶ сейчас' : x.paid ? '💛 следующей' : ++n + '.'}</span>
-    <span class="nm">${esc(x.title)}<small>${esc(x.artist || '')}${x.by ? ' · заказ ' + esc(x.by) : ''}</small></span></li>`).join('')
+  // 17.11.2026, Sunny: как в таблице на экране — у каждой песни её ступень лайков, ✓ когда лайков уже хватает
+  const lk = +L?.likes || 0, mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e }
+  $('#q').replaceChildren(...q.map(x => {
+    const at = x.at != null && Number.isFinite(+x.at) ? +x.at : null
+    const li = mk('li', [x.paid ? 'paid' : '', x.cur ? 'cur' : '', at != null && lk < at ? 'wait' : ''].join(' ').trim())
+    const nm = mk('span', 'nm', (x.cur || x.paid ? '' : ++n + '. ') + (x.title || ''))
+    nm.append(mk('small', '', (x.artist || '') + (x.by ? ' · заказ ' + x.by : '')))
+    li.append(mk('span', 'at', x.cur ? '▶ сейчас' : x.paid ? '💛 следующей' : at != null ? (lk >= at ? '✓ ' : '❤ ') + fmt(at) : ''), nm)
+    return li
+  }))
   $('#s').innerHTML = s.map(x => `<li><span class="nm">${esc(x.title)}<small>${esc(x.artist || '')}</small></span></li>`).join('')
 }
 async function poll() {

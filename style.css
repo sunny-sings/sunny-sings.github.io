@@ -41,6 +41,7 @@ h2 small { color: var(--mute); font-weight: 400; font-size: 14px; }
 .ladder li { display: flex; gap: 12px; align-items: center; background: var(--card); border-radius: 12px; padding: 10px 12px; }
 .ladder .at { flex: none; min-width: 74px; font-weight: 700; color: var(--gold); font-variant-numeric: tabular-nums; }
 .ladder li.paid .at { color: var(--red); }
+.ladder li.wait .at { color: var(--mute); }
 .ladder li.cur { outline: 2px solid var(--red); }
 .ladder .nm { flex: 1; min-width: 0; }
 .ladder .nm small { color: var(--mute); display: block; font-size: 13px; }
