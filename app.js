@@ -105,7 +105,7 @@ function renderRepair(R) {
   $('#g-raised').textContent = rub(R.raised || 0)
   $('#g-goal').textContent = rub(R.goal)
   const pc = Math.min(100, (R.raised || 0) / R.goal * 100)
-  $('#g-pct').textContent = (pc > 0 && pc < 10 ? pc.toFixed(1).replace('.', ',') : String(Math.floor(pc))) + '%'
+  $('#g-pct').textContent = (pc <= 0 ? '0' : pc < 0.1 ? '<0,1' : pc < 10 ? (Math.floor(pc * 10) / 10).toFixed(1).replace('.', ',') : String(Math.floor(pc))) + '%'
   $('#goal').hidden = false
 }
 
@@ -136,7 +136,7 @@ $('#q').addEventListener('input', renderSongs)
   try { SITE = await getJson('site.json') } catch { SITE = {} }
   SITE.tiktok ||= 'https://www.tiktok.com/@sun_singer'
   SITE.live ||= SITE.tiktok + '/live'
-  SITE.coinsNext ||= 100
+  SITE.coinsNext ||= 200
   renderLinks()
   renderRepair(await getJson('repair.json').catch(() => null))
   try {
