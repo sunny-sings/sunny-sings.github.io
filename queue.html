@@ -40,7 +40,7 @@ function render(L) {
   $('#q').replaceChildren(...q.map(x => {
     const at = x.at != null && Number.isFinite(+x.at) ? +x.at : null
     const li = mk('li', [x.paid ? 'paid' : '', x.cur ? 'cur' : '', at != null && lk < at ? 'wait' : ''].join(' ').trim())
-    const nm = mk('span', 'nm', (x.cur || x.paid ? '' : ++n + '. ') + (x.title || ''))
+    const nm = mk('span', 'nm', (x.paid ? '' : (x.no != null && Number.isFinite(+x.no) ? +x.no : ++n) + '. ') + (x.title || ''))
     nm.append(mk('small', '', (x.artist || '') + (x.by ? ' · заказ ' + x.by : '')))
     li.append(mk('span', 'at', x.cur ? '▶ сейчас' : x.paid ? '💛 следующей' : at != null ? (lk >= at ? '✓ ' : '❤ ') + fmt(at) : ''), nm)
     return li
