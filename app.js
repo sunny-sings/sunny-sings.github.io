@@ -104,6 +104,8 @@ function renderRepair(R) {
   $('#g-bar').style.width = Math.min(100, (R.raised || 0) / R.goal * 100) + '%'
   $('#g-raised').textContent = rub(R.raised || 0)
   $('#g-goal').textContent = rub(R.goal)
+  const pc = Math.min(100, (R.raised || 0) / R.goal * 100)
+  $('#g-pct').textContent = (pc > 0 && pc < 10 ? pc.toFixed(1).replace('.', ',') : String(Math.floor(pc))) + '%'
   $('#goal').hidden = false
 }
 
