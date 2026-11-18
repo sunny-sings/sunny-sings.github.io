@@ -7,27 +7,33 @@
   "links": [
     {
       "icon": "💛",
-      "title": "Поддержать донатом",
-      "sub": "Твой ник и сообщение прозвучат в эфире голосом · карты РФ, СБП и иностранные",
+      "title": "Поддержать",
+      "sub": "Твой ник и сообщение прозвучат в эфире · карты РФ, СБП, иностранные",
       "url": "https://www.donationalerts.com/r/sun_singer"
     },
     {
-      "icon": "🎯",
-      "title": "Сбор на …",
-      "sub": "ЮMoney",
+      "icon": "🚐",
+      "title": "Сбор на ремонт автодома",
+      "sub": "Чиню сама — показываю в эфирах",
+      "url": "#repair"
+    },
+    {
+      "brand": "telegram",
+      "title": "Telegram-чат",
+      "sub": "Анонсы эфиров и общение",
       "url": ""
     },
     {
-      "icon": "🌍",
-      "title": "Support from abroad",
-      "sub": "",
-      "url": ""
-    },
-    {
-      "icon": "📺",
+      "brand": "tiktok",
       "title": "TikTok @sun_singer",
-      "sub": "Подписывайся — эфиры почти каждый день, песни и ремонт автодома",
+      "sub": "Эфиры каждый день в 22:00 МСК",
       "url": "https://www.tiktok.com/@sun_singer"
+    },
+    {
+      "brand": "youtube",
+      "title": "YouTube",
+      "sub": "Песни и ремонт автодома",
+      "url": ""
     }
   ],
   "ntfyTopic": "sun-singer-live-a39ba815",

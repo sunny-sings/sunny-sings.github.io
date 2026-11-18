@@ -22,13 +22,19 @@ async function copy(text) {
   toast('Скопировано ✓')
 }
 
+// значки соцсетей: в site.json у ссылки "brand": "tiktok" | "telegram" | "youtube" (иначе — эмодзи из "icon")
+const BRAND = {
+  tiktok: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.7a5.7 5.7 0 1 0 4.9 5.7V9a7.3 7.3 0 0 0 4.3 1.4V7.3a4.3 4.3 0 0 1-3.2-1.5z"/></svg>',
+  telegram: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M20.7 4.3 2.9 11.2c-1.2.5-1.2 1.2-.2 1.5l4.6 1.4 1.7 5.4c.2.6.4.8.9.8.4 0 .6-.2.9-.4l2.2-2.1 4.6 3.4c.8.5 1.4.2 1.6-.8l3-14.2c.3-1.2-.5-1.8-1.5-1.3zM8.6 13.8l9.6-6.1c.5-.3.9-.1.5.2l-7.9 7.2-.3 3.3-1.9-4.6z"/></svg>',
+  youtube: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M10 15.5v-7l6 3.5-6 3.5z"/></svg>',
+}
 function renderLinks() {
-  const out = [`<button class="btn main" data-go="songs"><span class="ic">🎶</span><span class="tx">Заказать песню<small>Репертуар — выбери, что спеть</small></span></button>`,
-    `<a class="btn" href="queue.html"><span class="ic">📋</span><span class="tx">Очередь<small>Что поётся сейчас, кто что заказал</small></span></a>`,
-    `<a class="btn" href="top.html"><span class="ic">🔥</span><span class="tx">Топ песен<small>Что чаще всего поют и заказывают</small></span></a>`]
+  const out = [`<button class="btn main" data-go="songs"><span class="ic">🎶</span><span class="tx">Репертуар · заказать песню<small>${SONGS.length ? SONGS.length + ' песен — ' : ''}выбери, что спеть</small></span></button>`]
   for (const l of SITE.links || []) {
     if (!l.url) continue
-    out.push(`<a class="btn" href="${safeUrl(l.url)}" target="_blank" rel="noopener"><span class="ic">${esc(l.icon || '🔗')}</span><span class="tx">${esc(l.title)}${l.sub ? `<small>${esc(l.sub)}</small>` : ''}</span></a>`)
+    const inner = String(l.url).startsWith('#')               // ссылка на блок этой же страницы
+    const ic = BRAND[l.brand] ? `<span class="ic brand ${esc(l.brand)}">${BRAND[l.brand]}</span>` : `<span class="ic">${esc(l.icon || '🔗')}</span>`
+    out.push(`<a class="btn" href="${inner ? esc(l.url) : safeUrl(l.url)}"${inner ? '' : ' target="_blank" rel="noopener"'}>${ic}<span class="tx">${esc(l.title)}${l.sub ? `<small>${esc(l.sub)}</small>` : ''}</span></a>`)
   }
   $('#links').innerHTML = out.join('')
   $('#foot-tt').href = SITE.tiktok
@@ -92,6 +98,7 @@ async function sendOrder(btn) {
 function renderLive(L) {
   const on = !!(L && L.live && Date.now() - (L.at || 0) < 10 * 60000)
   $('#live').hidden = !on
+  $('#live').href = safeUrl(SITE.live)
   if (on && L.likes != null) $('#live-t').textContent = `Сейчас в эфире · ${fmt(L.likes)} ❤`
 }
 
@@ -106,6 +113,9 @@ function renderRepair(R) {
   $('#g-goal').textContent = rub(R.goal)
   const pc = Math.min(100, (R.raised || 0) / R.goal * 100)
   $('#g-pct').textContent = (pc <= 0 ? '0' : pc < 0.1 ? '<0,1' : pc < 10 ? (Math.floor(pc * 10) / 10).toFixed(1).replace('.', ',') : String(Math.floor(pc))) + '%'
+  const zero = !(R.raised > 0)                              // «0 ₽ · 0%» отпугивает — вместо этого зовём быть первым
+  $('#g-goal0').textContent = rub(R.goal)
+  $('#g-line').hidden = zero; $('#g-zero').hidden = !zero; $('.bar').hidden = zero
   $('#goal').hidden = false
 }
 
@@ -144,6 +154,7 @@ $('#q').addEventListener('input', renderSongs)
     SONGS.sort((a, b) => (a.artist || a.title).localeCompare(b.artist || b.title, 'ru'))
     $('#count').textContent = SONGS.length + ' песен'
   } catch { SONGS = [] }
+  renderLinks()                                             // ещё раз — с числом песен на кнопке
   renderSongs()
   pollLive(); setInterval(pollLive, 30000)
 })()
