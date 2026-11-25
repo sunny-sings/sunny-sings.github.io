@@ -29,7 +29,7 @@ const BRAND = {
   youtube: '<svg viewBox="0 0 24 24"><path fill="#fff" d="M10 15.5v-7l6 3.5-6 3.5z"/></svg>',
 }
 function renderLinks() {
-  const out = [`<button class="btn main" data-go="songs"><span class="ic">🎶</span><span class="tx">Репертуар · заказать песню<small>${SONGS.length ? SONGS.length + ' песен — ' : ''}выбери, что спеть</small></span></button>`]
+  const out = [`<a class="btn main" href="#songs"><span class="ic">🎶</span><span class="tx">Репертуар · заказать песню<small>${SONGS.length ? SONGS.length + ' песен — ' : ''}выбери, что спеть</small></span></a>`]
   for (const l of SITE.links || []) {
     if (!l.url) continue
     const inner = String(l.url).startsWith('#')               // ссылка на блок этой же страницы
@@ -48,7 +48,7 @@ function renderSongs() {
     const L = (s.artist || s.title).trim()[0]?.toUpperCase() || ''
     const head = !q && L !== last ? `<div class="letter">${esc(last = L)}</div>` : ''
     return `${head}<div class="song"><span class="nm">${esc(s.title)}<small>${esc(s.artist)}</small></span><button data-order="${esc(s.id)}">Заказать</button></div>`
-  }).join('') : '<p class="hint">Такой песни пока нет — напиши её в чат эфира — посмотрю 😉</p>'
+  }).join('') : '<p class="hint">Такой песни пока нет в списке — нажми «Закажи свою» выше 😉</p>'
 }
 
 function openOrder(song) {
@@ -76,19 +76,33 @@ function openOrder(song) {
   $('#sheet').hidden = false
 }
 
+// своя песня (нет в репертуаре): уходит в ту же ntfy-тему как {custom, by}; Мак кладёт её в «Заявки гостей» караоке
+function openCustom() {
+  $('#s-title').textContent = 'Своя песня'
+  $('#s-body').innerHTML = SITE.ordersTopic ? `<div class="way">
+    <p>Напиши исполнителя и название — заказ увижу я, в списке на сайте его не будет. Если песни нет в моём караоке, спою, когда выучу.</p>
+    <input class="nick" id="csong" maxlength="100" placeholder="Исполнитель — песня" value="${esc($('#q').value.trim())}">
+    <input class="nick" id="nick" maxlength="30" placeholder="Твой ник в TikTok" value="${esc(localStorage.nick || '')}">
+    <button class="go" data-send="custom">Отправить</button>
+    <p class="hint" id="sent" hidden></p></div>` : '<p class="hint">Напиши название в чат эфира — посмотрю 😉</p>'
+  $('#sheet').hidden = false
+}
+
 // заказ уходит в ntfy-тему; Мак забирает его за ~5 с и ставит в очередь (scripts/site-publish.mjs в karaoke)
 async function sendOrder(btn) {
   const nick = $('#nick').value.trim().replace(/^@/, '')
   if (!nick) { $('#nick').focus(); return toast('Напиши свой ник') }
+  const custom = btn.dataset.send === 'custom' ? $('#csong').value.trim() : ''
+  if (btn.dataset.send === 'custom' && custom.length < 3) { $('#csong').focus(); return toast('Напиши, какую песню спеть') }
   localStorage.nick = nick
   btn.disabled = true; btn.textContent = 'Отправляю…'
   const out = $('#sent')
   try {
-    const r = await fetch('https://ntfy.sh/' + encodeURIComponent(SITE.ordersTopic), { method: 'POST', body: JSON.stringify({ songId: btn.dataset.send, by: nick }) })
+    const r = await fetch('https://ntfy.sh/' + encodeURIComponent(SITE.ordersTopic), { method: 'POST', body: JSON.stringify(custom ? { custom, by: nick } : { songId: btn.dataset.send, by: nick }) })
     if (!r.ok) throw new Error(r.status)
     btn.textContent = 'Отправлено ✓'
     out.hidden = false
-    out.innerHTML = 'Заказ принят! Через несколько секунд он появится в <a href="queue.html">очереди</a> (если идёт эфир).'
+    out.innerHTML = custom ? 'Заказ отправлен — я его увижу 💛' : 'Заказ принят! Через несколько секунд он появится в <a href="queue.html">очереди</a> (если идёт эфир).'
   } catch {
     btn.disabled = false; btn.textContent = 'Заказать'
     out.hidden = false; out.textContent = 'Не отправилось — проверь интернет и попробуй ещё раз.'
@@ -131,16 +145,26 @@ async function pollLive() {
 }
 
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-go],[data-order],[data-copy],[data-copyfirst],[data-send],[data-close],#sheet')
+  if (e.target.closest('#custom')) return openCustom()
+  const t = e.target.closest('[data-order],[data-copy],[data-copyfirst],[data-send],[data-close],#sheet')
   if (!t) return
   if (t.dataset.send) return sendOrder(t)
-  if (t.dataset.go) { document.getElementById(t.dataset.go).scrollIntoView({ behavior: 'smooth' }); setTimeout(() => $('#q').focus({ preventScroll: true }), 500) }
-  else if (t.dataset.order) { const s = SONGS.find(x => String(x.id) === t.dataset.order); if (s) openOrder(s) }
+  if (t.dataset.order) { const s = SONGS.find(x => String(x.id) === t.dataset.order); if (s) openOrder(s) }
   else if (t.dataset.copy) copy(t.dataset.copy)
   else if (t.dataset.copyfirst) copy(t.dataset.copyfirst)   // ссылка всё равно откроется — текст уже в буфере
   else if ('close' in t.dataset || e.target === t) $('#sheet').hidden = true
 })
 $('#q').addEventListener('input', renderSongs)
+
+// ссылки Taplink ведут на #songs и #repair — показываем только этот раздел, без кнопок-дублей шапки
+function route() {
+  const p = location.hash.slice(1)
+  document.body.className = p === 'songs' || p === 'repair' ? 'pg pg-' + p : ''
+  window.scrollTo(0, 0)
+}
+addEventListener('hashchange', route)
+route()
+addEventListener('load', () => { if (document.body.className) scrollTo(0, 0) })   // браузер сам прыгает к якорю после загрузки
 
 ;(async () => {
   try { SITE = await getJson('site.json') } catch { SITE = {} }
@@ -148,6 +172,7 @@ $('#q').addEventListener('input', renderSongs)
   SITE.live ||= SITE.tiktok + '/live'
   SITE.coinsNext ||= 200
   renderLinks()
+  if (SITE.home) $('#home').href = SITE.home
   renderRepair(await getJson('repair.json').catch(() => null))
   try {
     SONGS = await getJson('songs.json')

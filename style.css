@@ -108,3 +108,25 @@ img.ava { display: block; object-fit: cover; width: 104px; height: 104px; backgr
 .chips { display: flex; justify-content: center; gap: 8px; margin: -14px 0 8px; }
 .chips a { text-decoration: none; color: var(--mute); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; font-size: 14px; }
 .links { margin-bottom: 26px; }
+
+/* 25.11: ссылки Taplink #songs / #repair открывают только свой раздел */
+.home { display: none; }
+body.pg .home { display: inline-block; }
+body.pg .head, body.pg #links, body.pg .chips, body.pg .foot { display: none; }
+body.pg-songs #repair, body.pg-repair #how, body.pg-repair #songs { display: none; }
+body.pg section:first-of-type, body.pg #repair { margin-top: 4px; }
+.btn.custom { margin: 0 0 12px; min-height: 0; padding: 10px 14px; }
+.btn.main, .tabs button.on { color: #fff; }
+.go.alt, .x { color: var(--text); }
+.sheet-box { background: var(--sheet, #16111f); }
+.steps a { color: var(--link, var(--cyan)); }
+
+/* светлая тема — по настройке телефона */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #ffffff; --card: #f4f2f6; --card2: #e9e5ef; --line: #e1dce8; --sheet: #ffffff;
+    --text: #17131d; --mute: rgba(23,19,29,.62); --gold: #b87400; --link: #d81b47;
+  }
+  body { background: radial-gradient(120% 50% at 50% 0%, #ffe1ea 0%, var(--bg) 60%) fixed, var(--bg); }
+  .toast { background: #17131d; color: #fff; }
+}

@@ -9,12 +9,15 @@
 <meta property="og:description" content="Эфиры в TikTok каждый день в 22:00 МСК — закажи свою песню">
 <meta property="og:image" content="https://sunny-sings.github.io/avatar.jpg">
 <meta property="og:url" content="https://sunny-sings.github.io/">
-<meta name="theme-color" content="#0e0b16">
+<meta name="theme-color" content="#0e0b16" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="color-scheme" content="dark light">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎤</text></svg>">
-<link rel="stylesheet" href="style.css?v=261118">
+<link rel="stylesheet" href="style.css?v=261125">
 </head>
 <body>
 <main class="wrap">
+  <a class="back home" id="home" href="./">← Sunny · @sun_singer</a>
 
   <header class="head">
     <img class="ava" src="avatar.jpg" alt="Sunny" width="104" height="104">
@@ -53,6 +56,7 @@
   <section id="songs">
     <h2>🎶 Репертуар <small id="count"></small></h2>
     <input id="q" class="search" placeholder="Поиск: исполнитель или песня…" autocomplete="off">
+    <button class="btn custom" id="custom"><span class="ic">✍️</span><span class="tx">Нет нужной песни? Закажи свою<small>Напиши, какую спеть, — увижу заказ</small></span></button>
     <div id="list" class="list"><p class="hint">Загружаю…</p></div>
   </section>
 
@@ -71,6 +75,6 @@
 </div>
 <div class="toast" id="toast" hidden></div>
 
-<script src="app.js?v=261118"></script>
+<script src="app.js?v=261125"></script>
 </body>
 </html>
